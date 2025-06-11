@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>MathABlocs</title>
+    <script> var $MOBILE_PHONE = false; </script>
+    <link rel="icon" type="image/png" href="dgpad-master_raf/favicon.png" />
+    <link rel="apple-touch-icon" href="dgpad-master_raf/scripts/NotPacked/images/icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta id="wholeViewport" name="viewport" content="width=device-width, maximum-scale=1.0, initial-scale=1 ,user-scalable=no" />
+    <script src="dgpad-master_raf/scripts/NotPacked/thirdParty/Blockly/blockly_compressed.js"></script>
+    <script src="keys_new/blockly_compressed.js"></script>
+    <script src="utils/css_accessible.js"></script>
+    <script src="keys_new/blocks_compressed.js"></script>
+    <script src="keys_new/javascript_compressed.js"></script>
+    
+    <script src="utils/fichiers.js"></script>
+    <script src="utils/affichage.js"></script>
+    
+    <script src="editeurs/ace/ace.js" type="text/javascript" charset="utf-8" ></script>
+    <script src="editeurs/editeur.js" type="text/javascript"></script>
+    <script src="editeurs/fichiers.js"></script>
+    <script src="sofus/blocks_complements.js"></script>
+    
+    <script src="sofus/javascript_complements.js"></script>
+    
+    <script src="blocks_complements.js"></script>
+    <script src="javascript_complements.js"></script>
+    
+    <script src="runMB.js" type="text/javascript"></script>
+    
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
+    <script src="js/jquery-resizable.min.js"></script>
+    <script src="js/jquery-resizableTableColumns.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+
+  <body style="-ms-touch-action: none; margin-left: 0px; margin-top: 0px">
+    <table>
+      <tr valign="top">
+        <td>
+          <center>
+            <!-- <img src="img/logo2.png" alt="" style="float: left" /> -->
+            <!-- <div id="boutons_blockly">
+              <button id="btnComenzar"
+                style="background-color: yellowgreen"
+                onclick="runBlockly()"
+              >
+                Comenzar
+              </button>
+              <button id="btnVerificar" onclick="runBlockly()" style="display:none;">Verificar</button>
+              <button id="btnReiniciar" onclick="runBlockly()" style="display:none;">Reiniciar</button>
+              
+            </div> -->
+            <div id="boutons_blockly">
+              <button id="btnAction"  onclick="handleButtonClick()">Comenzar</button>
+            </div>
+          </center>
+
+          <div id="blocklyDiv" style="height: 100%; width: 100%"></div>
+
+          <center>
+            <div id="boutons_editor">
+              
+              
+            </div>
+          </center>
+
+          <div
+            id="editor"
+            style="
+              height: 100%;
+              width: 100%;
+              border: solid 1px gray;
+              font-size: 12pt;
+            "
+          ></div>
+        </td>
+        <td>
+          
+        <div style="position: relative; width: 75%; float: left;">
+          <script
+              id="id_dgpad"
+              src="dgpad-master_raf/scripts/DGPad.js"
+              data-width="1000"
+              data-height="1000"
+          ></script>
+          <pre id="message" class="message"></pre>
+          <pre id="output" class="output"></pre>
+      </div>
+        </td>
+      </tr>
+    </table>
+
+    <style>
+      .output {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 11pt;
+        font-weight: normal;
+        color: blue;
+      }
+      .message {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 11pt;
+        font-weight: normal;
+        color: red;
+      }
+    </style>
+
+<script>
+  let buttonState = 'Comenzar';
+
+  function handleButtonClick() {
+    if (buttonState === 'Comenzar') {
+      runBlockly(0);
+      buttonState = 'Verificar';
+      document.getElementById('btnAction').innerText = 'Verificar';
+    } else if (buttonState === 'Verificar') {
+      runBlockly(1);
+      buttonState = 'Reiniciar';
+      document.getElementById('btnAction').innerText = 'Reiniciar';
+    } else if (buttonState === 'Reiniciar') {
+      runBlockly(2);
+      buttonState = 'Verificar';
+      document.getElementById('btnAction').innerText = 'Verificar';
+    }
+  }
+  </script>
+    <script>
+      $.ajax({
+        type: "GET",
+        url: "xml/menus_MB_master.xml", // le fichier xml décrivant le menu : ON PEUT EN CHANGER OU LE MODIFIER
+        dataType: "xml",
+        success: function (xml) {
+          // Création de l'espace de travail (en particulier du menu)
+          var workspace = Blockly.inject("blocklyDiv", {
+            media: "./keys_new/media/",
+            zoom: {
+              controls: true,
+              wheel: true,
+              startScale: 1.1,
+              maxScale: 3,
+              minScale: 0.5,
+              scaleSpeed: 1.2,
+            },
+            toolbox: $(xml).find("#toolbox")[0], // Téléchargement du menu
+          });
+    
+          function resizeBlockly() {
+            var blocklyWidth = window.innerWidth * 0.25; // 25% de la largeur de la fenêtre
+            var blocklyHeight = window.innerHeight; // Hauteur complète de la fenêtre
+            var scale = Math.min(blocklyWidth / 500, blocklyHeight / 500); // Ajuste la valeur 500 si nécessaire
+    
+            workspace.setScale(scale);
+            workspace.resize();
+            workspace.zoomToFit(); // Ajuste le zoom pour que tout le contenu soit visible
+          }
+
+          loadInitialBlocks();
+    
+          function handleWorkspaceChange(event) {
+            if (
+              event.type == Blockly.Events.BLOCK_CREATE ||
+              event.type == Blockly.Events.BLOCK_DRAG ||
+              event.type == Blockly.Events.BLOCK_MOVE ||
+              event.type == Blockly.Events.SELECTED
+            ) {
+              console.log("Event detected:", event.type);
+              // Rescalar solo si se está creando, moviendo o seleccionando bloques
+              resizeBlockly();
+            }
+          }
+    
+          // Event listener pour détecter les changements de taille de la fenêtre
+          window.addEventListener('resize', resizeBlockly);
+    
+          // Appelle la fonction une fois pour ajuster la taille initiale
+          resizeBlockly();
+          workspace.addChangeListener(handleWorkspaceChange);
+    
+          // Paramétrages divers des fenêtres de SofusPy
+          var dgpad_width = document
+            .getElementById("id_dgpad")
+            .getAttribute("data-width");
+    
+          document.getElementById("blocklyDiv").style.width =
+            window.innerWidth - 20 - dgpad_width + "px";
+          editeurToBlockly(); // On masque l'éditeur
+        },
+      });
+    </script>
+    
+    
+    </body>
+</html>
